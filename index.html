@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TDE Iris — Estatística Descritiva</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <h1>TDE — Iris (Estatística Descritiva)</h1>
+        <p>Selecione atributo e espécie, gere estatística e frequência (por classes/Sturges).</p>
+      </div>
+      <div class="badge">Interface simples</div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <div class="card-header">
+          <h2>Configurações</h2>
+          <p>Carregue o iris.csv e clique em calcular.</p>
+        </div>
+        <div class="card-body">
+          <div class="form">
+            <div>
+              <label>Arquivo iris.csv</label>
+              <input type="file" id="csvFile" accept=".csv,.txt" />
+            </div>
+
+            <div class="row">
+              <div>
+                <label>Atributo</label>
+                <select id="attr">
+                  <option value="petal_length">Comprimento da pétala</option>
+                  <option value="petal_width">Largura da pétala</option>
+                  <option value="sepal_length">Comprimento da sépala</option>
+                  <option value="sepal_width">Largura da sépala</option>
+                </select>
+              </div>
+
+              <div>
+                <label>Espécie</label>
+                <select id="species">
+                  <option value="all">Todas</option>
+                  <option value="setosa">Setosa</option>
+                  <option value="versicolor">Versicolor</option>
+                  <option value="virginica">Virginica</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn btn-primary" id="btnRun" type="button">Calcular</button>
+              <button class="btn btn-ghost" id="btnClear" type="button">Limpar</button>
+            </div>
+
+            <div class="notice" id="notice">Pronto.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Resultados</h2>
+          <p>Métricas e frequência agrupada.</p>
+        </div>
+        <div class="card-body">
+          <div class="kpis">
+            <div class="kpi"><p class="name">Média</p><p class="value" id="kMean">—</p></div>
+            <div class="kpi"><p class="name">Mediana</p><p class="value" id="kMedian">—</p></div>
+            <div class="kpi"><p class="name">Moda</p><p class="value" id="kMode">—</p></div>
+            <div class="kpi"><p class="name">Variância</p><p class="value" id="kVar">—</p></div>
+            <div class="kpi"><p class="name">Desvio Padrão</p><p class="value" id="kStd">—</p></div>
+            <div class="kpi"><p class="name">N</p><p class="value" id="kN">—</p></div>
+          </div>
+
+          <div class="table-wrap" style="margin-top:14px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Classe</th>
+                  <th>fi</th>
+                  <th>Fac</th>
+                  <th>fr</th>
+                </tr>
+              </thead>
+              <tbody id="freqBody">
+                <tr><td colspan="4" style="color: rgba(255,255,255,.6);">Sem dados ainda.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="footer" id="footer"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+  const API = `http://${location.hostname}:8080/analyze`;
+
+    function setText(id, value){ document.getElementById(id).textContent = value; }
+
+    function fillTable(rows){
+      const tbody = document.getElementById("freqBody");
+      tbody.innerHTML = "";
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${r.label}</td>
+          <td>${r.fi}</td>
+          <td>${r.fac}</td>
+          <td>${(r.fr).toFixed(4)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function resetUI(msg="Limpo."){
+      setText("kMean","—"); setText("kMedian","—"); setText("kMode","—");
+      setText("kVar","—"); setText("kStd","—"); setText("kN","—");
+      document.getElementById("freqBody").innerHTML =
+        `<tr><td colspan="4" style="color: rgba(255,255,255,.6);">Sem dados ainda.</td></tr>`;
+      setText("notice", msg);
+      setText("footer", "");
+    }
+
+    document.getElementById("btnClear").addEventListener("click", () => resetUI());
+
+    document.getElementById("btnRun").addEventListener("click", async () => {
+      const file = document.getElementById("csvFile").files[0];
+      const attr = document.getElementById("attr").value;
+      const species = document.getElementById("species").value;
+
+      if(!file){
+        setText("notice", "⚠ Selecione o iris.csv primeiro.");
+        return;
+      }
+
+      const form = new FormData();
+      form.append("csv_file", file);
+      form.append("attribute", attr);
+      form.append("species", species);
+
+      setText("notice", "Calculando…");
+
+      try{
+        const res = await fetch(API, { method:"POST", body: form });
+        const data = await res.json();
+
+        if(!data.ok){
+          setText("notice", "⚠ " + data.error);
+          return;
+        }
+
+        const r = data.raw;
+        setText("kMean", r.mean.toFixed(4));
+        setText("kMedian", r.median.toFixed(4));
+        setText("kMode", r.mode.toFixed(4));
+        setText("kVar", r.variance.toFixed(4));
+        setText("kStd", r.std_dev.toFixed(4));
+        setText("kN", r.n);
+
+        fillTable(data.freq_grouped);
+
+        setText("notice", "OK ✅");
+        setText("footer", `k=${data.grouped_stats.k} | h=${data.grouped_stats.h.toFixed(4)}`);
+
+      } catch(e){
+        setText("notice", "⚠ Erro ao conectar na API. Confirme se está rodando em 127.0.0.1:8000.");
+      }
+    });
+  </script>
+</body>
+</html>
