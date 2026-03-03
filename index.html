@@ -11,7 +11,7 @@
     <div class="header">
       <div class="brand">
         <h1>TDE — Iris (Estatística Descritiva)</h1>
-        <p>Selecione atributo e espécie. Você pode enviar o iris.csv (ou deixar vazio para usar o iris.csv do servidor).</p>
+        <p>Selecione atributo e espécie. Pode enviar o iris.csv (ou deixar vazio para usar o iris.csv do servidor).</p>
       </div>
       <div class="badge">Online</div>
     </div>
@@ -20,7 +20,7 @@
       <div class="card">
         <div class="card-header">
           <h2>Configurações</h2>
-          <p>Carregue o iris.csv (opcional) e clique em calcular.</p>
+          <p>Carregar o iris.csv (opcional) e clique em calcular.</p>
         </div>
         <div class="card-body">
           <form id="form" class="form">
@@ -94,7 +94,7 @@
   </div>
 
   <script>
-    // 1) COLE AQUI a URL pública da sua API (Render/Railway) depois que você publicar
+    // 1) COLAR AQUI a URL pública da sua API (Render/Railway) depois que publicar
     // Exemplo: https://projeto-iris-api.onrender.com
   const API_BASE = "https://projeto-iris.onrender.com";
     
@@ -119,7 +119,7 @@
 
     $("form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!API_BASE || API_BASE.includes("COLE_AQUI")) {
+      if (!API_BASE || API_BASE.includes("COLAR_AQUI")) {
         setStatus("⚠️ Falta configurar a URL da API (API_BASE) no index.html.");
         return;
       }
@@ -166,7 +166,7 @@
 
         setStatus("✅ Pronto!");
       } catch (err) {
-        setStatus("❌ Falha ao conectar na API. Verifique o link público do servidor.");
+        setStatus("❌ Falha ao conectar na API. Verificar o link público do servidor.");
       }
     });
   </script>
