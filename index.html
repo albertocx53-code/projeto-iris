@@ -93,81 +93,70 @@
     </div>
   </div>
 
-  <script>
-  const API_BASE = "https://projeto-iris.onrender.com";
-  </script>
-    
-    const $ = (id) => document.getElementById(id);
+ <script>
+const $ = (id) => document.getElementById(id);
 
-    function setStatus(msg) { $("status").textContent = msg; }
+function setStatus(msg) {
+  $("status").textContent = msg;
+}
 
-    function fmtNum(x) {
-      if (x === null || x === undefined || Number.isNaN(x)) return "—";
-      return (Math.round(x * 10000) / 10000).toString();
-    }
+function fmtNum(x) {
+  if (x === null || x === undefined || Number.isNaN(x)) return "—";
+  return (Math.round(x * 10000) / 10000).toString();
+}
 
-    function limpar() {
-      $("csv_file").value = "";
-      ["mean","median","mode","variance","std_dev","n"].forEach(k => $(k).textContent = "—");
-      $("tbody").innerHTML = `<tr><td colspan="4">Sem dados ainda.</td></tr>`;
-      $("foot").textContent = "";
-      setStatus("Pronto.");
-    }
+function limpar() {
+  $("csv_file").value = "";
+  ["mean", "median", "mode", "variance", "std_dev", "n"].forEach(k => $(k).textContent = "—");
+  $("tbody").innerHTML = '<tr><td colspan="4">Sem dados ainda.</td></tr>';
+  $("tfoot").textContent = "";
+  setStatus("Pronto.");
+}
 
-    $("btnLimpar").addEventListener("click", limpar);
+$("btnLimpar").addEventListener("click", limpar);
 
-    $("form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!API_BASE || API_BASE.includes("COLAR_AQUI")) {
-        setStatus("⚠️ Falta configurar a URL da API (API_BASE) no index.html.");
-        return;
-      }
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-      setStatus("Calculando...");
+  if (!API_BASE || API_BASE.includes("COLAR_AQUI")) {
+    setStatus("⚠ Falta configurar a URL da API.");
+    return;
+  }
 
-      const fd = new FormData();
-      fd.append("attribute", $("attribute").value);
-      fd.append("species", $("species").value);
+  setStatus("Calculando...");
+  const fd = new FormData();
+  fd.append("attribute", $("attribute").value);
+  fd.append("species", $("species").value);
 
-      const file = $("csv_file").files[0];
-      if (file) fd.append("csv_file", file);
+  const file = $("csv_file").files[0];
+  if (file) fd.append("csv_file", file);
 
-      try {
-        const resp = await fetch(API_BASE.replace(/\/$/, "") + "/analyze", {
-          method: "POST",
-          body: fd
-        });
-
-        const data = await resp.json();
-
-        if (!data.ok) {
-          setStatus("❌ " + (data.error || "Erro ao calcular"));
-          return;
-        }
-
-        const raw = data.raw || {};
-        $("n").textContent = fmtNum(raw.n);
-        $("mean").textContent = fmtNum(raw.mean);
-        $("median").textContent = fmtNum(raw.median);
-        $("mode").textContent = (raw.mode === null || raw.mode === undefined) ? "—" : String(raw.mode);
-        $("variance").textContent = fmtNum(raw.variance);
-        $("std_dev").textContent = fmtNum(raw.std_dev);
-
-        const rows = (data.freq_grouped || []).map(r => {
-          const fr = r.fr !== undefined ? (Math.round(r.fr * 10000) / 10000) : "—";
-          return `<tr><td>${r.label}</td><td>${r.fi}</td><td>${r.fac}</td><td>${fr}</td></tr>`;
-        }).join("");
-
-        $("tbody").innerHTML = rows || `<tr><td colspan="4">Sem dados ainda.</td></tr>`;
-
-        const gs = data.grouped_stats || {};
-        $("foot").textContent = `k=${gs.k ?? "—"} | h=${fmtNum(gs.h)} | média (agrup.)=${fmtNum(gs.mean)} | mediana (agrup.)=${fmtNum(gs.median)}`;
-
-        setStatus("✅ Pronto!");
-      } catch (err) {
-        setStatus("❌ Falha ao conectar na API. Verificar o link público do servidor.");
-      }
+  try {
+    const resp = await fetch(API_BASE.replace(/\/$/, "") + "/analyze", {
+      method: "POST",
+      body: fd
     });
-  </script>
+
+    const data = await resp.json();
+
+    if (!data.ok) {
+      setStatus("❌ " + data.error || "Erro ao calcular");
+      return;
+    }
+
+    const raw = data.raw || {};
+    $("mean").textContent = fmtNum(raw.mean);
+    $("median").textContent = fmtNum(raw.median);
+    $("mode").textContent = raw.mode ?? "—";
+    $("variance").textContent = fmtNum(raw.variance);
+    $("std_dev").textContent = fmtNum(raw.std_dev);
+    $("n").textContent = fmtNum(raw.n);
+
+    setStatus("✅ Pronto.");
+  } catch (err) {
+    setStatus("❌ Falha ao conectar na API. Verificar link público do servidor.");
+  }
+});
+</script>
 </body>
 </html>
