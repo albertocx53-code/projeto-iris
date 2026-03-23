@@ -1,162 +1,253 @@
-<!doctype html>
-<html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TDE Iris — Estatística Descritiva</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TDE — Iris (Estatística Descritiva)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #07152f, #0c1b46 55%, #191c4a);
+      color: #fff;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    h1 { margin: 0 0 8px; }
+    .subtitle { color: #bdd0ff; margin-bottom: 24px; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 16px;
+    }
+    .card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 18px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    label { display: block; font-size: 14px; color: #bdd0ff; margin-bottom: 8px; }
+    input[type="file"], select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: #0a1530;
+      color: #fff;
+      margin-bottom: 14px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .btns { display: flex; gap: 10px; margin: 8px 0 14px; }
+    button {
+      padding: 12px 18px;
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    #btnCalcular { background: #5c7cff; color: white; }
+    #btnLimpar { background: rgba(255,255,255,0.12); color: white; }
+    #status {
+      padding: 14px;
+      border: 1px dashed rgba(255,255,255,0.18);
+      border-radius: 12px;
+      color: #c8d6ff;
+      min-height: 52px;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+    }
+    .metric {
+      background: rgba(0,0,0,0.16);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .metric small { display: block; color: #bdd0ff; margin-bottom: 10px; }
+    .metric strong { font-size: 26px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.16);
+    }
+    th, td {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    th { color: #bdd0ff; }
+    #foot { margin-top: 12px; color: #c8d6ff; }
+    @media (max-width: 900px) {
+      .grid, .row, .metrics { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="brand">
-        <h1>TDE — Iris (Estatística Descritiva)</h1>
-        <p>Selecione atributo e espécie. Pode enviar o iris.csv (ou deixar vazio para usar o iris.csv do servidor).</p>
-      </div>
-      <div class="badge">Online</div>
-    </div>
+  <div class="wrap">
+    <h1>TDE — Iris (Estatística Descritiva)</h1>
+    <div class="subtitle">Selecione atributo e espécie. Pode enviar o iris.csv ou usar o arquivo padrão do servidor.</div>
 
     <div class="grid">
-      <div class="card">
-        <div class="card-header">
-          <h2>Configurações</h2>
-          <p>Carregar o iris.csv (opcional) e clique em calcular.</p>
-        </div>
-        <div class="card-body">
-          <form id="form" class="form">
+      <section class="card">
+        <h2>Configurações</h2>
+        <p style="color:#bdd0ff; margin-top:0;">Carregar o iris.csv (opcional) e clicar em calcular.</p>
+
+        <form id="form">
+          <label for="csv_file">Arquivo iris.csv (opcional)</label>
+          <input id="csv_file" name="csv_file" type="file" accept=".csv" />
+
+          <div class="row">
             <div>
-              <label>Arquivo iris.csv (opcional)</label>
-              <input id="csv_file" type="file" accept=".csv" />
+              <label for="attribute">Atributo</label>
+              <select id="attribute" name="attribute">
+                <option value="petal_length">Comprimento da pétala</option>
+                <option value="petal_width">Largura da pétala</option>
+                <option value="sepal_length">Comprimento da sépala</option>
+                <option value="sepal_width">Largura da sépala</option>
+              </select>
             </div>
-
-            <div class="row">
-              <div>
-                <label>Atributo</label>
-                <select id="attribute">
-                  <option value="petal_length">Comprimento da pétala</option>
-                  <option value="petal_width">Largura da pétala</option>
-                  <option value="sepal_length">Comprimento da sépala</option>
-                  <option value="sepal_width">Largura da sépala</option>
-                </select>
-              </div>
-
-              <div>
-                <label>Espécie</label>
-                <select id="species">
-                  <option value="all">Todas</option>
-                  <option value="setosa">Setosa</option>
-                  <option value="versicolor">Versicolor</option>
-                  <option value="virginica">Virginica</option>
-                </select>
-              </div>
+            <div>
+              <label for="species">Espécie</label>
+              <select id="species" name="species">
+                <option value="all">Todas</option>
+                <option value="setosa">Setosa</option>
+                <option value="versicolor">Versicolor</option>
+                <option value="virginica">Virginica</option>
+              </select>
             </div>
-
-            <div class="actions">
-              <button class="btn btn-primary" id="btnCalcular" type="submit">Calcular</button>
-              <button class="btn btn-ghost" id="btnLimpar" type="button">Limpar</button>
-            </div>
-
-            <div id="status" class="notice">Pronto.</div>
-          </form>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <h2>Resultados</h2>
-          <p>Métricas e frequência agrupada.</p>
-        </div>
-        <div class="card-body">
-          <div class="kpis">
-            <div class="kpi"><p class="name">Média</p><p class="value" id="mean">—</p></div>
-            <div class="kpi"><p class="name">Mediana</p><p class="value" id="median">—</p></div>
-            <div class="kpi"><p class="name">Moda</p><p class="value" id="mode">—</p></div>
-            <div class="kpi"><p class="name">Variância</p><p class="value" id="variance">—</p></div>
-            <div class="kpi"><p class="name">Desvio padrão</p><p class="value" id="std_dev">—</p></div>
-            <div class="kpi"><p class="name">N</p><p class="value" id="n">—</p></div>
           </div>
 
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr><th>Classe</th><th>fi</th><th>Fac</th><th>fr</th></tr>
-              </thead>
-              <tbody id="tbody">
-                <tr><td colspan="4">Sem dados ainda.</td></tr>
-              </tbody>
-            </table>
+          <div class="btns">
+            <button id="btnCalcular" type="submit">Calcular</button>
+            <button id="btnLimpar" type="button">Limpar</button>
           </div>
+        </form>
 
-          <div class="footer" id="foot"></div>
+        <div id="status">Pronto.</div>
+      </section>
+
+      <section class="card">
+        <h2>Resultados</h2>
+        <p style="color:#bdd0ff; margin-top:0;">Métricas e frequência agrupada.</p>
+
+        <div class="metrics">
+          <div class="metric"><small>Média</small><strong id="mean">—</strong></div>
+          <div class="metric"><small>Mediana</small><strong id="median">—</strong></div>
+          <div class="metric"><small>Moda</small><strong id="mode">—</strong></div>
+          <div class="metric"><small>Variância</small><strong id="variance">—</strong></div>
+          <div class="metric"><small>Desvio padrão</small><strong id="std_dev">—</strong></div>
+          <div class="metric"><small>N</small><strong id="n">—</strong></div>
         </div>
-      </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Classe</th>
+              <th>fi</th>
+              <th>Fac</th>
+              <th>fr</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="4">Sem dados ainda.</td></tr>
+          </tbody>
+        </table>
+
+        <div id="foot"></div>
+      </section>
     </div>
   </div>
 
- <script>
-const $ = (id) => document.getElementById(id);
+  <script>
+    const API_BASE = "https://projeto-iris.onrender.com";
 
-function setStatus(msg) {
-  $("status").textContent = msg;
-}
+    const $ = (id) => document.getElementById(id);
 
-function fmtNum(x) {
-  if (x === null || x === undefined || Number.isNaN(x)) return "—";
-  return (Math.round(x * 10000) / 10000).toString();
-}
-
-function limpar() {
-  $("csv_file").value = "";
-  ["mean", "median", "mode", "variance", "std_dev", "n"].forEach(k => $(k).textContent = "—");
-  $("tbody").innerHTML = '<tr><td colspan="4">Sem dados ainda.</td></tr>';
-  $("tfoot").textContent = "";
-  setStatus("Pronto.");
-}
-
-$("btnLimpar").addEventListener("click", limpar);
-
-$("form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  if (!API_BASE || API_BASE.includes("COLAR_AQUI")) {
-    setStatus("⚠ Falta configurar a URL da API.");
-    return;
-  }
-
-  setStatus("Calculando...");
-  const fd = new FormData();
-  fd.append("attribute", $("attribute").value);
-  fd.append("species", $("species").value);
-
-  const file = $("csv_file").files[0];
-  if (file) fd.append("csv_file", file);
-
-  try {
-    const resp = await fetch(API_BASE.replace(/\/$/, "") + "/analyze", {
-      method: "POST",
-      body: fd
-    });
-
-    const data = await resp.json();
-
-    if (!data.ok) {
-      setStatus("❌ " + data.error || "Erro ao calcular");
-      return;
+    function setStatus(msg) {
+      $("status").textContent = msg;
     }
 
-    const raw = data.raw || {};
-    $("mean").textContent = fmtNum(raw.mean);
-    $("median").textContent = fmtNum(raw.median);
-    $("mode").textContent = raw.mode ?? "—";
-    $("variance").textContent = fmtNum(raw.variance);
-    $("std_dev").textContent = fmtNum(raw.std_dev);
-    $("n").textContent = fmtNum(raw.n);
+    function fmtNum(x) {
+      if (x === null || x === undefined || Number.isNaN(Number(x))) return "—";
+      return (Math.round(Number(x) * 10000) / 10000).toString();
+    }
 
-    setStatus("✅ Pronto.");
-  } catch (err) {
-    setStatus("❌ Falha ao conectar na API. Verificar link público do servidor.");
-  }
-});
-</script>
+    function limpar() {
+      $("csv_file").value = "";
+      ["mean", "median", "mode", "variance", "std_dev", "n"].forEach((k) => {
+        $(k).textContent = "—";
+      });
+      $("tbody").innerHTML = '<tr><td colspan="4">Sem dados ainda.</td></tr>';
+      $("foot").textContent = "";
+      setStatus("Pronto.");
+    }
+
+    $("btnLimpar").addEventListener("click", limpar);
+
+    $("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setStatus("Calculando...");
+
+      const fd = new FormData();
+      fd.append("attribute", $("attribute").value);
+      fd.append("species", $("species").value);
+
+      const file = $("csv_file").files[0];
+      if (file) fd.append("csv_file", file);
+
+      try {
+        const resp = await fetch(API_BASE.replace(/\/$/, "") + "/analyze", {
+          method: "POST",
+          body: fd
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok || !data.ok) {
+          setStatus("❌ " + (data.error || "Erro ao calcular"));
+          return;
+        }
+
+        const raw = data.raw || {};
+        $("n").textContent = fmtNum(raw.n);
+        $("mean").textContent = fmtNum(raw.mean);
+        $("median").textContent = fmtNum(raw.median);
+        $("mode").textContent = (raw.mode === null || raw.mode === undefined || raw.mode === "") ? "—" : String(raw.mode);
+        $("variance").textContent = fmtNum(raw.variance);
+        $("std_dev").textContent = fmtNum(raw.std_dev);
+
+        const rows = (data.freq_grouped || []).map((r) => {
+          const fr = r.fr !== undefined ? (Math.round(Number(r.fr) * 10000) / 10000) : "—";
+          return `<tr><td>${r.label}</td><td>${r.fi}</td><td>${r.fac}</td><td>${fr}</td></tr>`;
+        }).join("");
+
+        $("tbody").innerHTML = rows || '<tr><td colspan="4">Sem dados ainda.</td></tr>';
+
+        const gs = data.grouped_stats || {};
+        $("foot").textContent = `k=${gs.k ?? "—"} | h=${fmtNum(gs.h)} | média (agrup.)=${fmtNum(gs.mean)} | mediana (agrup.)=${fmtNum(gs.median)}`;
+
+        setStatus("✅ Cálculo concluído.");
+      } catch (err) {
+        setStatus("❌ Falha ao conectar na API. Verifique se o backend está online no Render.");
+      }
+    });
+  </script>
 </body>
 </html>
